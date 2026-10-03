@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Strength Tracker</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f5f6f4;--card:#fff;--tx:#1d2420;--mu:#68716b;--ac:#2f6b4f;--bd:#dde1dc;--r:#c0392b;--y:#b38600;--b:#2f6fc0;--p:#8a55c9}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141815;--card:#1e251f;--tx:#e8ece9;--mu:#9aa59d;--ac:#6fc29a;--bd:#2f3931;--r:#ef7a6e;--y:#e6bd3c;--b:#6ea8ee;--p:#b78df0}}
+:root[data-theme="dark"]{--bg:#141815;--card:#1e251f;--tx:#e8ece9;--mu:#9aa59d;--ac:#6fc29a;--bd:#2f3931;--r:#ef7a6e;--y:#e6bd3c;--b:#6ea8ee;--p:#b78df0}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+main{max-width:760px;margin:0 auto;padding:16px}
+h1{font-size:20px;margin:0 0 12px}h2{font-size:14px;margin:0 0 8px;color:var(--mu);text-transform:uppercase;letter-spacing:.05em}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:12px}
+#nt{text-transform:capitalize}
+table{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}th,td{padding:5px 6px;text-align:center;border-top:1px solid var(--bd)}th{color:var(--mu);font-weight:500;font-size:11px;border-top:0}td:first-child,th:first-child{text-align:left}tr.l1 td{font-weight:700;background:var(--bg)}tr.l2 td{font-weight:700;background:var(--bg);border-top:2px solid var(--tx)}td small{color:var(--mu);font-weight:400}
+#pls .pl:first-child{border-top:0;padding-top:0;margin-top:0}
+.fade{opacity:.35}
+label{display:block;font-size:12px;color:var(--mu);margin:8px 0 3px}
+input,select{width:100%;padding:9px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit}
+input[type=checkbox]{width:20px;height:20px;padding:0}
+.row{display:flex;gap:8px}.row>div{flex:1;min-width:0}
+button{padding:9px 14px;border:0;border-radius:8px;background:var(--ac);color:var(--bg);font:inherit;font-weight:600;cursor:pointer;margin-top:10px}
+button.s{background:none;border:1px solid var(--bd);color:var(--tx);padding:4px 9px;margin:0;font-weight:400;font-size:13px}
+.big{display:flex;gap:24px;margin-top:8px}.big div{font-size:34px;font-weight:700;line-height:1.1}.big span{font-size:16px;color:var(--mu);font-weight:400}.big small{display:block;font-size:12px;color:var(--mu);font-weight:400}
+.pl{border-top:1px solid var(--bd);padding-top:10px;margin-top:10px}
+.ph{display:flex;justify-content:space-between;font-weight:600;margin-bottom:6px;gap:8px;flex-wrap:wrap}.ph span:last-child{font-weight:400;font-size:13px}
+.secs{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:6px}
+.sec{border:1px solid var(--bd);border-radius:8px;padding:6px;font-size:13px;min-width:0}
+.sec b{font-size:16px}.ab{font-size:11px;margin-top:3px;display:flex;flex-wrap:wrap;gap:2px 6px}
+.r{color:var(--r)}.y{color:var(--y)}.b{color:var(--b)}.p{color:var(--p)}
+.mc{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--bd);font-size:14px}
+.st{display:grid;grid-template-columns:1fr 70px 70px;gap:6px;align-items:center;font-size:14px}.st .h{font-size:11px;color:var(--mu);text-align:center}
+.st input{justify-self:center}
+.err{color:#b3392f;font-size:13px;margin-top:6px;min-height:1em}.mu{color:var(--mu);font-size:13px}
+</style></head><body><main>
+<h1>Strength Tracker</h1>
+
+<div class="card"><label for="stp">Strength type</label><select id="stp"><option>First Parade</option><option>Conduct</option><option>Last Parade</option></select>
+<div id="cnw"><label for="cn">Conduct name</label><input id="cn" placeholder="e.g. Route March" autocomplete="off"></div>
+<label for="d">Date</label><input type="date" id="d">
+<div class="big"><div id="tc"></div><div id="tp"></div></div>
+<div class="mu" id="totsub" style="margin-top:6px"></div></div>
+
+<div class="card"><h2>Breakdown</h2><div style="overflow-x:auto" id="bd"></div></div>
+
+<div class="card"><div id="pls"></div>
+<label for="rp">Report for</label><select id="rp"><option value="1">Platoon 1</option><option value="2">Platoon 2</option><option value="3">Platoon 3</option><option value="4">Platoon 4</option><option value="All">All platoons</option></select>
+<button id="cp">Copy strength report</button> <button id="sv">Save to log</button><div class="mu" id="smsg" style="margin-top:6px"></div></div>
+
+<div class="card"><h2>Saved log</h2><div id="lg"></div></div>
+
+<div class="card"><h2>Add status</h2><div class="mu" id="em"></div>
+<label for="ty">Status</label><select id="ty"></select>
+<div id="nw" style="display:none"><label for="nt" id="nl">Specify</label><input id="nt" placeholder="e.g. Ankle sprain" autocomplete="off"></div>
+<label for="ids">Recruit(s) — e.g. 1101, 2305, 3401-3405</label><input id="ids" placeholder="1101, 2305" autocomplete="off">
+<div class="row"><div id="fw"><label for="f">From</label><input type="date" id="f"></div><div><label for="t" id="tl">To</label><input type="date" id="t"></div></div>
+<button id="add">Add</button> <button id="cx" class="s" style="display:none;margin-top:10px">Cancel</button><div class="err" id="err"></div></div>
+
+<div class="card"><h2 id="lh">Statuses</h2><div id="list"></div></div>
+
+<div class="card"><h2>Recruit statuses</h2>
+<label for="rid">Recruit 4D number</label><input id="rid" placeholder="e.g. 2207" inputmode="numeric" maxlength="4" autocomplete="off">
+<div class="mu" style="margin-top:8px">Show types</div>
+<div id="rf" style="display:flex;flex-wrap:wrap;gap:4px 12px;margin:6px 0"></div>
+<button class="s" id="ra">All</button> <button class="s" id="rn">None</button>
+<div id="lk" style="margin-top:8px"></div></div>
+
+<div class="card"><h2>Roster</h2><div class="mu" id="rs" style="margin-bottom:6px"></div>
+<label for="xid">Exclude recruits from total strength — e.g. 1101, 2305, 3401-3405</label><input id="xid" placeholder="1101, 2305" autocomplete="off">
+<button id="xb">Exclude</button><div class="err" id="xerr"></div><div id="xl"></div></div>
+
+<div class="card"><h2>Strength settings</h2>
+<div class="mu" style="margin-bottom:8px">Tick to exclude that status from each count. Anyone excluded from current strength is also excluded from participating. All Others share one row; each specific Other Status gets its own row once added.</div>
+<div class="st" id="set"></div></div>
+</main>
+<script>
+const $=s=>document.querySelector(s);
+const T=[['UFD','r',1,1],['Ex Stay-In','r',1,1],['Guard Duty','r',0,1],['Others','r',1,1,1],['LD','y',0,1],['RMJ','y',0,1],['UFD+1','y',0,1],['UFD+2','y',0,1],['Other Status','y',0,1,1],['Fall Out','b',0,1],['Report Sick','b',0,1],['Other Conduct','p',0,1,1]]
+ .map(([n,c,cur,par,note])=>({n,c,cur,par,note}));
+const TM=Object.fromEntries(T.map(t=>[t.n,t]));TM.Others.lump=1;TM['Other Conduct'].lump=1;TM['UFD+1'].plus=1;TM['UFD+2'].plus=2;
+const addDays=(x,n)=>{const d=new Date(x+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)};
+const ld=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}};
+const sv=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const ren={'Stay out':'Ex Stay-In','Stay Out':'Ex Stay-In','Guard duty':'Guard Duty','Fall out':'Fall Out'};
+const cap=x=>String(x||'').trim().replace(/\s+/g,' ').replace(/(^|\s)(\S)/g,(m,a,b)=>a+b.toUpperCase());
+let mcs=ld('mcs',[]).map(m=>({note:'',...m,type:(m.type||'MC')=='MC'?'UFD':m.type})).map(m=>({...m,note:cap(m.note),type:ren[m.type]||m.type})).filter(m=>m.type!='UFD+1'&&m.type!='UFD+2');
+let cfg=ld('cfg',{});
+let exl=ld('ex',[]),LOG=ld('log',[]),LSEL={};
+let editK=null;
+let stype=ld('stype','Conduct'),cname=ld('cname',''),PAR=false;
+if(cfg.MC){cfg.UFD=cfg.MC;delete cfg.MC}
+for(const o in ren)if(cfg[o]){cfg[ren[o]]=cfg[o];delete cfg[o]}
+T.forEach(t=>{if(cfg[t.n])Object.assign(t,cfg[t.n])});
+const valid=id=>/^[1-4][1-4](0[1-9]|1[0-6])$/.test(id);
+const today=new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);
+$('#d').value=$('#f').value=$('#t').value=today;
+const fmt=s=>s.split('-').reverse().join('/');
+let report='';
+
+const dd=c=>T.filter(t=>t.c==c&&!t.plus);
+$('#ty').innerHTML=[['r','Red'],['y','Yellow'],['b','Blue'],['p','Purple']].map(([c,l])=>`<optgroup label="${l}">${dd(c).map(t=>`<option>${t.n}</option>`).join('')}</optgroup>`).join('');
+$('#ty').onchange=()=>{const v=$('#ty').value;$('#nw').style.display=TM[v].note?'block':'none';$('#nl').textContent=v=='Other Conduct'?'Which conduct':'Specify';$('#nt').placeholder=v=='Other Conduct'?'e.g. Range Day':'e.g. Ankle sprain'};
+const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const sk=m=>m.note?m.type+'|'+m.note.trim().toLowerCase():m.type;
+const rule=m=>(m.note&&TM[m.type].note&&!TM[m.type].lump&&cfg[sk(m)])||TM[m.type];
+function getRows(){
+  const rows=T.filter(t=>!t.note||t.lump).map(t=>({key:t.n,label:t.n,c:t.c,r:t,base:1}));const seen={};
+  mcs.forEach(m=>{if(m.note&&TM[m.type].note&&!TM[m.type].lump){const k=sk(m);if(!seen[k]){seen[k]=1;rows.push({key:k,label:m.type+' – '+m.note.trim(),c:TM[m.type].c,r:rule(m)})}}});
+  rows.sort((a,b)=>'rybp'.indexOf(a.c)-'rybp'.indexOf(b.c));
+  return rows;
+}
+function renderSet(){
+  const rows=getRows();
+  $('#set').innerHTML='<span></span><span class="h">Excl. current</span><span class="h">Excl. particip.</span>'+rows.map((x,i)=>`<span class="${x.c}"><b>${esc(x.label)}</b></span><input type="checkbox" data-i="${i}" data-f="cur"><input type="checkbox" data-i="${i}" data-f="par">`).join('');
+  document.querySelectorAll('#set input').forEach(el=>{const x=rows[el.dataset.i],f=el.dataset.f;el.checked=!!x.r[f];el.onchange=()=>{
+    const v={cur:x.r.cur,par:x.r.par};v[f]=el.checked?1:0;
+    if(x.base){x.r[f]=v[f]}cfg[x.key]=v;sv('cfg',cfg);render();if(!x.base)renderSet()}});
+}
+
+const eff=()=>mcs.flatMap(m=>m.type=='UFD'?[m,...[1,2].map(n=>({id:m.id,from:addDays(m.to,n),to:addDays(m.to,n),type:'UFD+'+n,note:'',auto:1}))]:[m]);
+const rankOf=(m,rw)=>{const t=TM[m.type],key=t.note&&!t.lump&&m.note?sk(m):m.type,i=rw.findIndex(r=>r.key==key);return i>=0?i:rw.map(r=>r.c).lastIndexOf(t.c)+.5};
+const uniq=a=>{const z=new Set();return a.filter(m=>{const k=m.type+'|'+(m.note||'').toLowerCase();return z.has(k)?0:z.add(k)})};
+const lbl=()=>stype=='Conduct'?(cap(cname)?'Conduct: '+cap(cname):'Conduct'):stype;
+const hid=m=>PAR&&(m.type=='Fall Out'||m.type=='Report Sick'||m.type=='Other Conduct');
+const pad2=n=>String(n).padStart(2,'0');
+const ddmmyy=x=>x.slice(8,10)+x.slice(5,7)+x.slice(2,4);
+const rlab=m=>(TM[m.type].note&&m.note?m.note:m.type).toUpperCase();
+const rline=(id,ed)=>{const f=ed.map(m=>m.from).sort()[0],t=ed.map(m=>m.to).sort().pop(),dd=Math.round((Date.parse(t)-Date.parse(f))/864e5)+1;return 'C'+id+'/'+ed.map(rlab).join(', ')+(ed.every(m=>m.type=='Others')?'':'/'+dd+'D/'+ddmmyy(f)+'-'+ddmmyy(t))};
+let RP={},repPlt='1';
+const rcats=()=>[['UFD','UFD'],['STATUS','STATUS'],['OTHERS','OTHERS']].concat(PAR?[]:[['FO','FALL OUT'],['RS','REPORT SICK'],['OC','OTHER CONDUCT']]);
+const rttl=()=>stype=='Conduct'?(cap(cname)?cap(cname).toUpperCase():'CONDUCT'):stype.toUpperCase();
+const rsfx=()=>stype=='Conduct'?'STRENGTH':'STATE';
+const DOT='..............................';
+function fmtCoy(d){
+  const P=[1,2,3,4].map(p=>RP[p]),sum=k=>P.reduce((a,R)=>a+R.PS.reduce((b,x)=>b+x.L[k].length,0),0);
+  const C=P.reduce((a,R)=>a+R.pC,0),Q=P.reduce((a,R)=>a+R.pP,0),N=P.reduce((a,R)=>a+R.pN,0);
+  const o=[`*${ddmmyy(d)} COMPANY ${rttl()} ${rsfx()}*`,`*COMPANY TOTAL STRENGTH: ${C}/${N}*`];
+  if(!PAR)o.push(`*COMPANY PARTICIPATING STRENGTH: ${Q}/${N}*`);
+  rcats().forEach(([k,n])=>o.push(`*${n}: ${pad2(sum(k))}*`));
+  return o.join('\n');
+}
+function fmtPlt(p,d){
+  const R=RP[p],sum=k=>R.PS.reduce((a,x)=>a+x.L[k].length,0);
+  const cats=rcats(),ttl=rttl();
+  const o=[`*${ddmmyy(d)} PLT ${p} ${ttl} ${rsfx()}*`,`*PLT ${p} TOTAL STRENGTH: ${R.pC}/${R.pN}*`];
+  if(!PAR)o.push(`*PLT ${p} PARTICIPATING STRENGTH: ${R.pP}/${R.pN}*`);
+  cats.forEach(([k,n])=>o.push(`*${n}: ${pad2(sum(k))}*`));
+  R.PS.forEach(x=>{o.push('',`*S${x.s} TOTAL: ${x.c}/${x.n}*`);if(!PAR)o.push(`*S${x.s} PARTICIPATING: ${x.pa}/${x.n}*`);
+    cats.forEach(([k,n])=>{o.push(`*${n}: ${pad2(x.L[k].length)}*`);x.L[k].forEach((t,i)=>o.push(`${i+1}. ${t}`))})});
+  return o.join('\n');
+}
+const buildReport=d=>repPlt=='All'?[fmtCoy(d),...[1,2,3,4].map(p=>fmtPlt(p,d))].join('\n\n'+DOT+'\n\n'):fmtPlt(+repPlt,d);
+const RF=new Set(T.map(t=>t.n));
+const KEYS=['none','UFD','Ex Stay-In','Guard Duty','Others','Status','StatusP','Fall Out','Report Sick','Other Conduct','tot','c','p'];
+const newB=()=>Object.fromEntries(KEYS.map(k=>[k,0]));
+const addB=(a,b)=>KEYS.forEach(k=>a[k]+=b[k]);
+const bl=B=>`UFD ${B.UFD}, Ex Stay-In ${B['Ex Stay-In']}, Guard Duty ${B['Guard Duty']}, Others ${B.Others}, Status ${B.Status}${PAR?'':` (+${B.StatusP} participating)`}${PAR?'':`, Fall Out ${B['Fall Out']}, Report Sick ${B['Report Sick']}`}`;
+const noFx=()=>!TM['Ex Stay-In'].cur&&(PAR||!TM['Ex Stay-In'].par);
+const cell=(n,c='')=>`<td class="${c}${n?'':' mu'}">${n}</td>`;
+const brow=(l,B,v)=>`<tr class="${v?'l'+v:''}"><td>${l}</td>${cell(B.tot)}${cell(B.c)}${PAR?'':cell(B.p)}${cell(B.UFD,'r')}${cell(B['Ex Stay-In'],'r'+(noFx()?' fade':''))}${cell(B['Guard Duty'],'r')}${cell(B.Others,'r')}${cell(B.Status,'y')}${PAR?'':cell(B.StatusP,'y fade')}${PAR?'':cell(B['Fall Out'],'b')+cell(B['Report Sick'],'b')+cell(B['Other Conduct'],'p')}</tr>`;
+function render(){
+  PAR=stype!='Conduct';RP={};
+  const d=$('#d').value||today,A={},RW=getRows();
+  eff().forEach(m=>{if(m.from<=d&&d<=m.to&&!hid(m))(A[m.id]=A[m.id]||[]).push(m)});
+  const X=new Set(exl);let tC=0,tP=0,tN=0,html='',rep='',bdh='',CB=newB(),outN=Object.keys(A).filter(i=>!X.has(i)).length;
+  for(let p=1;p<=4;p++){
+    let pC=0,pP=0,pN=0,sh='',lines=[],PB=newB(),sr='',PS=[];
+    for(let s=1;s<=4;s++){
+      let c=0,pa=0,n=0,ab='',al=[],B=newB(),L={UFD:[],STATUS:[],OTHERS:[],FO:[],RS:[],OC:[]};
+      for(let b=1;b<=16;b++){
+        const id=''+p+s+String(b).padStart(2,'0'),e=A[id]||[];if(X.has(id))continue;n++;
+        const af=e.filter(m=>rule(m).cur||rule(m).par),pool=af.length?af:e,top='rybp'.split('').find(c=>pool.some(m=>TM[m.type].c==c)),ed=uniq(pool.filter(m=>TM[m.type].c==top)).sort((a,b)=>rankOf(a,RW)-rankOf(b,RW));const exC=e.some(m=>rule(m).cur),exP=e.some(m=>rule(m).par);
+        if(!exC){c++;if(!exP)pa++}
+        const cat=!e.length?'none':top=='r'?['UFD','Ex Stay-In','Guard Duty','Others'].find(n=>ed.some(m=>m.type==n)):top=='y'?'Status':top=='p'?'Other Conduct':['Fall Out','Report Sick'].find(n=>ed.some(m=>m.type==n));
+        B.tot++;B[cat=='Status'&&!PAR&&!exC&&!exP?'StatusP':cat]++;if(!exC){B.c++;if(!exP)B.p++}
+        if(e.length){
+          ab+=`<span class="${TM[ed[0].type].c}${af.length?'':' fade'}">${id} ${ed.map(m=>m.type+(m.note?` (${esc(m.note)})`:'')).join('/')}</span>`;
+          if(af.length)L[cat=='UFD'?'UFD':cat=='Status'?'STATUS':cat=='Fall Out'?'FO':cat=='Report Sick'?'RS':cat=='Other Conduct'?'OC':'OTHERS'].push(rline(id,ed));
+          if(af.length)al.push(id+' '+ed.map(m=>m.type+(m.note?` (${m.note})`:'')).join('/'));
+        }
+      }
+      pC+=c;pP+=pa;pN+=n;addB(PB,B);PS.push({s,c,pa,n,L});
+      sh+=`<div class="sec">Sec ${s}<br>Cur <b>${c}</b>/${n}${PAR?'':` · Part <b>${pa}</b>/${n}`}<div class="ab">${ab}</div></div>`;
+      lines.push(`  Sec ${s}: Cur ${c}/${n}${PAR?'':`, Part ${pa}/${n}`}`+(al.length?` [${al.join('; ')}]`:''));
+    }
+    tC+=pC;tP+=pP;tN+=pN;addB(CB,PB);RP[p]={pC,pP,pN,PS};bdh+=brow('Platoon '+p,PB,0);
+    html+=`<div class="pl"><div class="ph"><span>Platoon ${p}</span><span>Cur ${pC}/${pN}${PAR?'':` · Part ${pP}/${pN}`}</span></div><div class="secs">${sh}</div></div>`;
+    rep+=`Platoon ${p}: Cur ${pC}/${pN}${PAR?'':`, Part ${pP}/${pN}`}\n  ${bl(PB)}\n${lines.join('\n')}\n`;
+  }
+  report=`${lbl()} Strength ${fmt(d)}\nCompany: Cur ${tC}/${tN}${PAR?'':`, Part ${tP}/${tN}`}\n  ${bl(CB)}\n`+rep;
+  report=buildReport(d);
+  renderLookup();
+  $('#tc').innerHTML=`${tC}<span>/${tN}</span><small>Current (in camp)</small>`;
+  $('#tp').innerHTML=PAR?'':`${tP}<span>/${tN}</span><small>Participating</small>`;
+  $('#totsub').textContent=`${lbl()} · ${outN} recruit${outN==1?'':'s'} with a status on this date`;
+  $('#pls').innerHTML=html;
+  $('#bd').innerHTML='<table><thead><tr><th>Unit</th><th>Total</th><th>Cur</th>'+(PAR?'':'<th>Part</th>')+'<th class="r">UFD</th><th class="r'+(noFx()?' fade':'')+'">Ex Stay-In</th><th class="r">Guard Duty</th><th class="r">Others</th><th class="y">Status</th>'+(PAR?'':'<th class="y fade">Status (Part)</th>')+''+(PAR?'':'<th class="b">Fall Out</th><th class="b">Report Sick</th><th class="p">Other Conduct</th>')+'</tr></thead><tbody>'+bdh+brow('Company',CB,2)+'</tbody></table><div class="mu" style="margin-top:6px">Each recruit is counted once, under his highest-precedence status. '+(PAR?'':'Status counts non-participating status recruits; the faded column is those still participating, who do not reduce the strength.')+'</div>';
+  const act=eff().filter(m=>m.from<=d&&d<=m.to&&!X.has(m.id)&&!hid(m));$('#lh').textContent='Statuses on '+fmt(d);
+  const g={};act.forEach(m=>{const k=m.id[0]+'|'+m.type+'|'+m.note+'|'+m.from+'|'+m.to;(g[k]=g[k]||[]).push(m)});
+  const row=a=>{const m=a[0];return `<div class="mc"><span><b class="${TM[m.type].c}">${m.type}</b>${m.note?` (${esc(m.note)})`:''} · ${fmt(m.from)} – ${fmt(m.to)} (${Math.round((Date.parse(m.to)-Date.parse(m.from))/864e5)+1}D)${m.auto?' <span class="mu">(auto)</span>':''}<br><span class="mu">${a.map(x=>x.id).sort().join(', ')}</span></span><span style="display:flex;flex-direction:column;gap:4px">${m.auto?'':a.slice().sort((x,y)=>x.id<y.id?-1:x.id>y.id?1:0).map(x=>`<span style="display:flex;gap:4px"><button class="s" data-e="${x.k}">✎ ${x.id}</button><button class="s" data-k="${x.k}">✕</button></span>`).join('')}</span></div>`};
+  const rw=getRows(),rk=m=>{const t=TM[m.type],key=t.note&&!t.lump&&m.note?sk(m):m.type,i=rw.findIndex(r=>r.key==key);return i>=0?i:rw.map(r=>r.c).lastIndexOf(t.c)+.5};
+  const gs=Object.values(g).sort((a,b)=>rk(a[0])-rk(b[0])||(a[0].from<b[0].from?-1:a[0].from>b[0].from?1:0));
+  $('#list').innerHTML=act.length?[1,2,3,4].map(p=>{const q=gs.filter(a=>a[0].id[0]==p);return q.length?`<div class="pl" style="margin-top:0"><div class="ph"><span>Platoon ${p}</span><span>${q.reduce((n,a)=>n+a.length,0)} entr${q.reduce((n,a)=>n+a.length,0)==1?'y':'ies'}</span></div>${q.map(row).join('')}</div>`:''}).join(''):'<div class="mu">No statuses on this date — everyone present.</div>';
+}
+
+function renderLog(){$('#lg').innerHTML=LOG.length?LOG.map(x=>`<details style="border-top:1px solid var(--bd);padding:6px 0"><summary><b>${x.type=='Conduct'?'Conduct: '+esc(x.name):x.type}</b> · ${fmt(x.date)}<br><span class="mu">Cur ${x.cur}/${x.total}${x.part==null?'':' · Part '+x.part+'/'+x.total}</span></summary><select data-sel="${x.id}" style="width:auto;margin-top:8px">${[['All','Company'],[1,'Platoon 1'],[2,'Platoon 2'],[3,'Platoon 3'],[4,'Platoon 4']].map(([v,l])=>`<option value="${v}"${(LSEL[x.id]||'All')==v?' selected':''}>${l}</option>`).join('')}</select><pre id="pre${x.id}" style="white-space:pre-wrap;font:12px/1.4 ui-monospace,monospace;margin:8px 0">${esc(x.texts[LSEL[x.id]||'All']||x.texts.All)}</pre><button class="s" data-cp="${x.id}">Copy</button> <button class="s" data-del="${x.id}">Delete</button></details>`).join(''):'<div class="mu">Nothing saved yet.</div>'}
+$('#sv').onclick=()=>{
+  const m=$('#smsg'),d=$('#d').value||today;let name='';
+  if(stype=='Conduct'){name=cap(cname);
+    if(!name){m.className='err';m.textContent='Enter the conduct name before saving.';return}
+    if(LOG.some(x=>x.type=='Conduct'&&x.name.toLowerCase()==name.toLowerCase())){m.className='err';m.textContent=`A conduct named "${name}" is already saved. Rename it or delete the saved one.`;return}}
+  if(stype!='Conduct'&&LOG.some(x=>x.type==stype&&x.date==d)){m.className='err';m.textContent=`A ${stype} is already saved for ${fmt(d)}. Delete it first to save a new one.`;return}
+  const P=[1,2,3,4].map(p=>RP[p]),sm=k=>P.reduce((a,R)=>a+R[k],0);
+  const texts={All:[fmtCoy(d),...[1,2,3,4].map(p=>fmtPlt(p,d))].join('\n\n'+DOT+'\n\n')};[1,2,3,4].forEach(p=>texts[p]=fmtPlt(p,d));
+  LOG.unshift({id:Date.now(),type:stype,name,date:d,cur:sm('pC'),part:PAR?null:sm('pP'),total:sm('pN'),texts});
+  sv('log',LOG);m.className='mu';m.textContent='Saved to log.';renderLog();
+};
+$('#lg').onchange=e=>{const i=e.target.dataset.sel;if(i){LSEL[i]=e.target.value;const x=LOG.find(v=>String(v.id)==i);$('#pre'+i).textContent=x.texts[e.target.value]||x.texts.All}};
+$('#lg').onclick=async e=>{const b=e.target,c=b.dataset.cp,dl=b.dataset.del;
+  if(c){const x=LOG.find(v=>String(v.id)==c);try{await navigator.clipboard.writeText(x.texts[LSEL[c]||'All']||x.texts.All);b.textContent='Copied!'}catch(err){b.textContent='Copy failed'}setTimeout(()=>b.textContent='Copy',1500)}
+  if(dl){LOG=LOG.filter(v=>String(v.id)!==dl);sv('log',LOG);renderLog()}};
+function parseIds(str){const bad=[],ids=new Set();str.split(/[\s,]+/).filter(Boolean).forEach(x=>{const m=x.match(/^(\d{4})-(\d{4})$/);if(m){let c=0;for(let i=+m[1];i<=+m[2];i++)if(valid(''+i)){ids.add(''+i);c++}if(!c)bad.push(x)}else if(valid(x))ids.add(x);else bad.push(x)});return{ids,bad}}
+function renderRoster(){$('#rs').textContent=`Total strength: ${256-exl.length} of 256 recruits`;$('#xl').innerHTML=exl.map(i=>`<button class="s" data-i="${i}" style="margin:0 4px 4px 0">✕ ${i}</button>`).join('')||'<span class="mu">No recruits excluded.</span>'}
+$('#xb').onclick=()=>{const{ids,bad}=parseIds($('#xid').value);if(bad.length)return $('#xerr').textContent='Invalid ID: '+bad.join(', ');if(!ids.size)return $('#xerr').textContent='Enter at least one recruit ID.';exl=[...new Set([...exl,...ids])].sort();sv('ex',exl);$('#xid').value='';$('#xerr').textContent='';render();renderRoster()};
+$('#xl').onclick=e=>{const i=e.target.dataset.i;if(i){exl=exl.filter(x=>x!==i);sv('ex',exl);render();renderRoster()}};
+$('#add').onclick=()=>{
+  const bad=[],ids=new Set(),f=$('#f').value,t=$('#t').value,ty=$('#ty').value,pl=TM[ty].plus||0,nt=cap($('#nt').value);
+  $('#ids').value.split(/[\s,]+/).filter(Boolean).forEach(x=>{
+    const m=x.match(/^(\d{4})-(\d{4})$/);
+    if(m){let c=0;for(let i=+m[1];i<=+m[2];i++)if(valid(''+i)){ids.add(''+i);c++}if(!c)bad.push(x)}
+    else if(valid(x))ids.add(x);else bad.push(x);
+  });
+  if(bad.length)return $('#err').textContent='Invalid ID: '+bad.join(', ');
+  if(!ids.size)return $('#err').textContent='Enter at least one recruit ID.';
+  const xs=[...ids].filter(i=>exl.includes(i));if(xs.length)return $('#err').textContent=xs.join(', ')+' excluded from strength. Restore in Roster first.';
+  if(!f||!t||t<f)return $('#err').textContent='Check the dates (To must not be before From).';
+  if(TM[ty].note&&!nt)return $('#err').textContent='Please specify the status.';
+  if(editK!==null){mcs=mcs.filter(m=>m.k!==editK);endEdit()}
+  ids.forEach(id=>mcs.push({k:Date.now()+Math.random(),id,from:f,to:t,type:ty,note:TM[ty].note?nt:''}));
+  sv('mcs',mcs);$('#ids').value='';$('#nt').value='';$('#err').textContent='';render();renderSet();
+};
+function endEdit(){editK=null;$('#add').textContent='Add';$('#cx').style.display='none';$('#em').textContent=''}
+$('#cx').onclick=()=>{endEdit();$('#ids').value='';$('#nt').value='';$('#err').textContent=''};
+$('#list').onclick=e=>{const k=e.target.dataset.k,ek=e.target.dataset.e;
+  if(ek){const m=mcs.find(v=>String(v.k)==ek);if(m){editK=m.k;$('#ty').value=m.type;$('#ty').onchange();$('#nt').value=m.note||'';$('#ids').value=m.id;$('#f').value=m.from;$('#t').value=m.to;$('#add').textContent='Update status';$('#cx').style.display='';$('#em').textContent='Editing '+m.id+' — '+m.type+'. Change anything, then tap Update status.';$('#err').textContent='';$('#ty').scrollIntoView?.({behavior:'smooth',block:'center'})}}
+  if(k){if(String(editK)==k)endEdit();mcs=mcs.filter(m=>String(m.k)!==k&&String(m.link)!==k);sv('mcs',mcs);render();renderSet()}};
+function renderRF(){$('#rf').innerHTML=T.filter(t=>!t.plus).map(t=>`<label class="${t.c}" style="display:flex;align-items:center;gap:4px;margin:0;font-size:13px"><input type="checkbox" data-t="${t.n}" style="width:16px;height:16px"${RF.has(t.n)?' checked':''}>${t.n}</label>`).join('')}
+function renderLookup(){
+  const id=($('#rid').value||'').trim(),box=$('#lk'),d=$('#d').value||today;
+  if(!id){box.innerHTML='<div class="mu">Enter a recruit number to see every status logged for him.</div>';return}
+  if(!valid(id)){box.innerHTML='<div class="mu">Not a valid recruit number (1101 to 4416, bed 01 to 16).</div>';return}
+  const rw=getRows(),all=mcs.filter(m=>m.id==id),L=all.filter(m=>RF.has(m.type)).sort((a,b)=>a.from<b.from?-1:a.from>b.from?1:rankOf(a,rw)-rankOf(b,rw));
+  box.innerHTML=`<div class="mu" style="margin-bottom:4px">${id}${exl.includes(id)?' · excluded from strength':''} · ${L.length} of ${all.length} entr${all.length==1?'y':'ies'}</div>`+(L.length?L.map(m=>{
+    const tag=m.from<=d&&d<=m.to?'<b>active on selected date</b>':m.to<d?'past':'upcoming',n=Math.round((Date.parse(m.to)-Date.parse(m.from))/864e5)+1;
+    return `<div class="mc"><span><b class="${TM[m.type].c}">${m.type}</b>${m.note?` (${esc(m.note)})`:''}${m.auto?' <span class="mu">(auto)</span>':''}<br><span class="mu">${fmt(m.from)} – ${fmt(m.to)} · ${n}D · ${tag}</span></span>${m.auto?'':`<span style="display:flex;gap:4px"><button class="s" data-e="${m.k}">✎</button><button class="s" data-k="${m.k}">✕</button></span>`}</div>`}).join(''):'<div class="mu">No matching statuses.</div>');
+}
+$('#rid').oninput=renderLookup;
+$('#rf').onchange=e=>{const t=e.target.dataset.t;if(t){e.target.checked?RF.add(t):RF.delete(t);renderLookup()}};
+$('#ra').onclick=()=>{T.forEach(t=>RF.add(t.n));renderRF();renderLookup()};
+$('#rn').onclick=()=>{RF.clear();renderRF();renderLookup()};
+$('#lk').onclick=$('#list').onclick;
+$('#d').onchange=render;
+$('#rp').onchange=()=>{repPlt=$('#rp').value;render()};
+$('#stp').value=stype;$('#cn').value=cname;$('#cnw').style.display=stype=='Conduct'?'':'none';
+$('#stp').onchange=()=>{stype=$('#stp').value;sv('stype',stype);$('#cnw').style.display=stype=='Conduct'?'':'none';render()};
+$('#cn').oninput=()=>{cname=$('#cn').value;sv('cname',cname);render()};
+$('#cp').onclick=async()=>{try{await navigator.clipboard.writeText(report);$('#cp').textContent='Copied!'}catch(e){$('#cp').textContent='Copy failed'}setTimeout(()=>$('#cp').textContent='Copy strength report',1500)};
+render();renderSet();renderRoster();renderLog();renderRF();
+</script></body></html>
