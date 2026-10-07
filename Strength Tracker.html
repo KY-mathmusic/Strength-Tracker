@@ -34,42 +34,49 @@ button.s{background:none;border:1px solid var(--bd);color:var(--tx);padding:4px 
 .st input{justify-self:center}
 .err{color:#b3392f;font-size:13px;margin-top:6px;min-height:1em}.mu{color:var(--mu);font-size:13px}
 </style></head><body><main>
-<h1>Strength Tracker</h1>
- 
+<h1>Strength Tracker <span id="sst" class="mu" style="font-weight:400"></span></h1>
+
 <div class="card"><label for="stp">Strength type</label><select id="stp"><option>First Parade</option><option>Conduct</option><option>Last Parade</option></select>
 <div id="cnw"><label for="cn">Conduct name</label><input id="cn" placeholder="e.g. Route March" autocomplete="off"></div>
 <label for="d">Date</label><input type="date" id="d">
 <div class="big"><div id="tc"></div><div id="tp"></div></div>
 <div class="mu" id="totsub" style="margin-top:6px"></div></div>
- 
+
 <div class="card"><h2>Breakdown</h2><div style="overflow-x:auto" id="bd"></div></div>
- 
+
 <div class="card"><div id="pls"></div>
 <label for="rp">Report for</label><select id="rp"><option value="1">Platoon 1</option><option value="2">Platoon 2</option><option value="3">Platoon 3</option><option value="4">Platoon 4</option><option value="All">All platoons</option></select>
 <button id="cp">Copy strength report</button> <button id="sv">Save to log</button><div class="mu" id="smsg" style="margin-top:6px"></div></div>
- 
+
 <div class="card"><h2>Saved log</h2><div id="lg"></div></div>
- 
+
 <div class="card"><h2>Add status</h2><div class="mu" id="em"></div>
 <label for="ty">Status</label><select id="ty"></select>
 <div id="nw" style="display:none"><label for="nt" id="nl">Specify</label><input id="nt" placeholder="e.g. Ankle sprain" autocomplete="off"></div>
 <label for="ids">Recruit(s) — e.g. 1101, 2305, 3401-3405</label><input id="ids" placeholder="1101, 2305" autocomplete="off">
 <div class="row"><div id="fw"><label for="f">From</label><input type="date" id="f"></div><div><label for="t" id="tl">To</label><input type="date" id="t"></div></div>
 <button id="add">Add</button> <button id="cx" class="s" style="display:none;margin-top:10px">Cancel</button><div class="err" id="err"></div></div>
- 
+
 <div class="card"><h2 id="lh">Statuses</h2><div id="list"></div></div>
- 
+
 <div class="card"><h2>Recruit statuses</h2>
 <label for="rid">Recruit 4D number</label><input id="rid" placeholder="e.g. 2207" inputmode="numeric" maxlength="4" autocomplete="off">
 <div class="mu" style="margin-top:8px">Show types</div>
 <div id="rf" style="display:flex;flex-wrap:wrap;gap:4px 12px;margin:6px 0"></div>
 <button class="s" id="ra">All</button> <button class="s" id="rn">None</button>
 <div id="lk" style="margin-top:8px"></div></div>
- 
+
 <div class="card"><h2>Roster</h2><div class="mu" id="rs" style="margin-bottom:6px"></div>
 <label for="xid">Exclude recruits from total strength — e.g. 1101, 2305, 3401-3405</label><input id="xid" placeholder="1101, 2305" autocomplete="off">
 <button id="xb">Exclude</button><div class="err" id="xerr"></div><div id="xl"></div></div>
- 
+
+<div class="card"><h2>Sync</h2><div class="mu" id="sy" style="margin-bottom:6px"></div>
+<div id="syf"><label for="sul">Database URL</label><input id="sul" placeholder="https://your-project-default-rtdb.asia-southeast1.firebasedatabase.app" autocomplete="off">
+<label for="scd">Sync code (the same on every device)</label><div class="row"><div><input id="scd" autocomplete="off"></div><div style="flex:0 0 auto"><button class="s" id="sgn" style="margin-top:0;height:100%">Generate</button></div></div>
+<button id="sco">Connect</button></div>
+<div id="syc" style="display:none"><button class="s" id="scl" style="margin-top:0">Copy setup link</button> <button class="s" id="sdc" style="margin-top:0">Disconnect</button></div>
+<div class="err" id="syerr"></div></div>
+
 <div class="card"><h2>Strength settings</h2>
 <div class="mu" style="margin-bottom:8px">Tick to exclude that status from each count. Anyone excluded from current strength is also excluded from participating. All Others share one row; each specific Other Status gets its own row once added.</div>
 <div class="st" id="set"></div></div>
@@ -81,7 +88,9 @@ const T=[['UFD','r',1,1],['Ex Stay-In','o',1,1],['Guard Duty','o',0,1],['Others'
 const TM=Object.fromEntries(T.map(t=>[t.n,t]));TM.Others.lump=1;TM['Other Conduct'].lump=1;TM['UFD+1'].plus=1;TM['UFD+2'].plus=2;
 const addDays=(x,n)=>{const d=new Date(x+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)};
 const ld=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}};
-const sv=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const sv0=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+let SY=ld('sync',null),dirty=false,pt=null,et=null,es=null,lastSig='',remote={mcs:{},log:{},ex:{},cfg:{}},pq=Promise.resolve(),pulling=false;
+const sv=(k,v)=>{sv0(k,v);if(SY&&['mcs','cfg','ex','log'].includes(k)){dirty=true;clearTimeout(pt);pt=setTimeout(push,300)}};
 const ren={'Stay out':'Ex Stay-In','Stay Out':'Ex Stay-In','Guard duty':'Guard Duty','Fall out':'Fall Out'};
 const cap=x=>String(x||'').trim().replace(/\s+/g,' ').replace(/(^|\s)(\S)/g,(m,a,b)=>a+b.toUpperCase());
 let mcs=ld('mcs',[]).map(m=>({note:'',...m,type:(m.type||'MC')=='MC'?'UFD':m.type})).map(m=>({...m,note:cap(m.note),type:ren[m.type]||m.type})).filter(m=>m.type!='UFD+1'&&m.type!='UFD+2');
@@ -97,7 +106,7 @@ const today=new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString(
 $('#d').value=$('#f').value=$('#t').value=today;
 const fmt=s=>s.split('-').reverse().join('/');
 let report='';
- 
+
 const dd=c=>T.filter(t=>t.c==c&&!t.plus);
 $('#ty').innerHTML=[['r','Red'],['o','Orange'],['y','Yellow'],['b','Blue'],['p','Purple']].map(([c,l])=>`<optgroup label="${l}">${dd(c).map(t=>`<option>${t.n}</option>`).join('')}</optgroup>`).join('');
 $('#ty').onchange=()=>{const v=$('#ty').value;$('#nw').style.display=TM[v].note?'block':'none';$('#nl').textContent=v=='Other Conduct'?'Which conduct':'Specify';$('#nt').placeholder=v=='Other Conduct'?'e.g. Range Day':'e.g. Ankle sprain'};
@@ -117,7 +126,7 @@ function renderSet(){
     const v={cur:x.r.cur,par:x.r.par};v[f]=el.checked?1:0;
     if(x.base){x.r[f]=v[f]}cfg[x.key]=v;sv('cfg',cfg);render();if(!x.base)renderSet()}});
 }
- 
+
 const eff=()=>mcs.flatMap(m=>m.type=='UFD'?[m,...[1,2].map(n=>({id:m.id,from:addDays(m.to,n),to:addDays(m.to,n),type:'UFD+'+n,note:'',auto:1}))]:[m]);
 const rankOf=(m,rw)=>{const t=TM[m.type],key=t.note&&!t.lump&&m.note?sk(m):m.type,i=rw.findIndex(r=>r.key==key);return i>=0?i:rw.map(r=>r.c).lastIndexOf(t.c)+.5};
 const uniq=a=>{const z=new Set();return a.filter(m=>{const k=m.type+'|'+(m.note||'').toLowerCase();return z.has(k)?0:z.add(k)})};
@@ -203,7 +212,7 @@ function render(){
   const gs=Object.values(g).sort((a,b)=>rk(a[0])-rk(b[0])||(a[0].from<b[0].from?-1:a[0].from>b[0].from?1:0));
   $('#list').innerHTML=act.length?[1,2,3,4].map(p=>{const q=gs.filter(a=>a[0].id[0]==p);return q.length?`<div class="pl" style="margin-top:0"><div class="ph"><span>Platoon ${p}</span><span>${q.reduce((n,a)=>n+a.length,0)} entr${q.reduce((n,a)=>n+a.length,0)==1?'y':'ies'}</span></div>${q.map(row).join('')}</div>`:''}).join(''):'<div class="mu">No statuses on this date — everyone present.</div>';
 }
- 
+
 function renderLog(){$('#lg').innerHTML=LOG.length?LOG.map(x=>`<details style="border-top:1px solid var(--bd);padding:6px 0"><summary><b>${x.type=='Conduct'?'Conduct: '+esc(x.name):x.type}</b> · ${fmt(x.date)}<br><span class="mu">Cur ${x.cur}/${x.total}${x.part==null?'':' · Part '+x.part+'/'+x.total}</span></summary><select data-sel="${x.id}" style="width:auto;margin-top:8px">${[['All','Company'],[1,'Platoon 1'],[2,'Platoon 2'],[3,'Platoon 3'],[4,'Platoon 4']].map(([v,l])=>`<option value="${v}"${(LSEL[x.id]||'All')==v?' selected':''}>${l}</option>`).join('')}</select><pre id="pre${x.id}" style="white-space:pre-wrap;font:12px/1.4 ui-monospace,monospace;margin:8px 0">${esc(x.texts[LSEL[x.id]||'All']||x.texts.All)}</pre><button class="s" data-cp="${x.id}">Copy</button> <button class="s" data-del="${x.id}">Delete</button></details>`).join(''):'<div class="mu">Nothing saved yet.</div>'}
 $('#sv').onclick=()=>{
   const m=$('#smsg'),d=$('#d').value||today;let name='';
@@ -266,6 +275,77 @@ $('#stp').value=stype;$('#cn').value=cname;$('#cnw').style.display=stype=='Condu
 $('#stp').onchange=()=>{stype=$('#stp').value;sv('stype',stype);$('#cnw').style.display=stype=='Conduct'?'':'none';render()};
 $('#cn').oninput=()=>{cname=$('#cn').value;sv('cname',cname);render()};
 $('#cp').onclick=async()=>{try{await navigator.clipboard.writeText(report);$('#cp').textContent='Copied!'}catch(e){$('#cp').textContent='Copy failed'}setTimeout(()=>$('#cp').textContent='Copy strength report',1500)};
-render();renderSet();renderRoster();renderLog();renderRF();
+const objOf=v=>Array.isArray(v)?Object.fromEntries(v.map((x,i)=>[i,x]).filter(([i,x])=>x!=null)):(v||{});
+const ss=v=>JSON.stringify(v,(k,x)=>x&&typeof x=='object'&&!Array.isArray(x)?Object.fromEntries(Object.keys(x).sort().filter(q=>x[q]!=null).map(q=>[q,x[q]])):x);
+const skey=k=>encodeURIComponent(k).replace(/\./g,'%2E'),sdec=k=>decodeURIComponent(k);
+const base=()=>SY.url+'/s/'+encodeURIComponent(SY.code);
+const toMaps=()=>({mcs:Object.fromEntries(mcs.map(m=>[skey(String(m.k)),m])),log:Object.fromEntries(LOG.map(x=>[String(x.id),x])),ex:Object.fromEntries(exl.map(i=>[i,true])),cfg:Object.fromEntries(Object.entries(cfg).map(([k,v])=>[skey(k),v]))});
+const setRemote=d=>{remote={mcs:objOf(d.mcs),log:objOf(d.log),ex:objOf(d.ex),cfg:objOf(d.cfg)}};
+const applyCfg=()=>T.forEach(t=>{if(cfg[t.n])Object.assign(t,cfg[t.n])});
+const decCfg=o=>Object.fromEntries(Object.entries(o).map(([k,v])=>[sdec(k),v]));
+function setSt(s){const e=$('#sst');e.textContent=SY?(s=='ok'?'● Synced':'● Offline, will retry'):'';e.style.color=s=='ok'?'var(--ac)':'var(--r)'}
+function showSync(){$('#syf').style.display=SY?'none':'';$('#syc').style.display=SY?'':'none';
+  $('#sy').textContent=SY?'Connected · code ending …'+SY.code.slice(-3)+'. Edits on any device using the same code appear on all of them.':'Not connected. Entries are saved on this device only.';
+  if(!SY)$('#sst').textContent=''}
+function mergeIn(){
+  const m=Object.fromEntries(mcs.map(x=>[skey(String(x.k)),x]));Object.assign(m,remote.mcs);mcs=Object.values(m);
+  const l=Object.fromEntries(LOG.map(x=>[String(x.id),x]));Object.assign(l,remote.log);LOG=Object.values(l).sort((a,b)=>b.id-a.id);
+  exl=[...new Set([...exl,...Object.keys(remote.ex)])].sort();
+  cfg={...cfg,...decCfg(remote.cfg)};applyCfg();
+}
+function applyRemote(){
+  mcs=Object.values(remote.mcs);LOG=Object.values(remote.log).sort((a,b)=>b.id-a.id);exl=Object.keys(remote.ex).sort();
+  cfg=decCfg(remote.cfg);applyCfg();
+  sv0('mcs',mcs);sv0('log',LOG);sv0('ex',exl);sv0('cfg',cfg);
+  render();renderSet();renderRoster();renderLog();
+}
+async function push1(){
+  if(!SY)return;const loc=toMaps(),body={};
+  for(const c of ['mcs','log','ex','cfg']){const a=loc[c],b=remote[c];
+    for(const k in a)if(ss(a[k])!==ss(b[k]))body[c+'/'+k]=a[k];
+    for(const k in b)if(!(k in a))body[c+'/'+k]=null}
+  if(!Object.keys(body).length){dirty=false;return}
+  try{const r=await fetch(base()+'.json',{method:'PATCH',body:JSON.stringify(body)});if(!r.ok)throw 0;
+    for(const p in body){const i=p.indexOf('/'),c=p.slice(0,i),k=p.slice(i+1);if(body[p]===null)delete remote[c][k];else remote[c][k]=body[p]}
+    dirty=false;setSt('ok')}
+  catch(e){dirty=true;setSt('err');clearTimeout(pt);pt=setTimeout(push,8000)}
+}
+function push(){pq=pq.then(push1,push1);return pq}
+async function pull(){
+  if(!SY||pulling)return;pulling=true;
+  try{if(dirty)await push();
+    const r=await fetch(base()+'.json');if(!r.ok)throw 0;const d=(await r.json())||{};
+    if(dirty){setTimeout(pull,1500);return}
+    setRemote(d);const sig=ss(remote);if(sig!==lastSig){lastSig=sig;applyRemote()}setSt('ok')}
+  catch(e){setSt('err')}
+  finally{pulling=false}
+}
+function listen(){
+  if(es)es.close();
+  try{es=new EventSource(base()+'.json');const f=()=>{clearTimeout(et);et=setTimeout(pull,250)};
+    es.addEventListener('put',f);es.addEventListener('patch',f);es.onerror=()=>setSt('err')}catch(e){}
+}
+async function doConnect(url,code){
+  const e=$('#syerr');e.textContent='';url=(url||'').trim().replace(/\/+$/,'');code=(code||'').trim();
+  if(!/^https:\/\/\S+$/.test(url)||!code){e.textContent='Enter the database URL (starting with https://) and a sync code.';return}
+  if(code.length<8){e.textContent='Use a longer sync code (at least 8 characters). Tap Generate.';return}
+  SY={url,code};
+  try{const r=await fetch(base()+'.json');if(!r.ok)throw 0;setRemote((await r.json())||{});
+    mergeIn();dirty=true;await push();if(dirty)throw 0}
+  catch(err){SY=null;e.textContent='Could not connect. Check the URL and that the database rules allow access (see the setup steps).';return}
+  sv0('sync',SY);lastSig=ss(remote);applyRemote();listen();showSync();setSt('ok');
+}
+$('#sco').onclick=()=>doConnect($('#sul').value,$('#scd').value);
+$('#sgn').onclick=()=>{const a='abcdefghjkmnpqrstuvwxyz23456789',r=crypto.getRandomValues(new Uint8Array(20));$('#scd').value=[...r].map(x=>a[x%a.length]).join('')};
+$('#scl').onclick=async()=>{const b=$('#scl');try{await navigator.clipboard.writeText(location.origin+location.pathname+'#sync='+encodeURIComponent(JSON.stringify({u:SY.url,c:SY.code})));b.textContent='Copied!'}catch(err){b.textContent='Copy failed'}setTimeout(()=>b.textContent='Copy setup link',1500)};
+$('#sdc').onclick=()=>{if(es)es.close();SY=null;try{localStorage.removeItem('sync')}catch(e){}showSync()};
+function initSync(){
+  showSync();
+  const h=typeof location!=='undefined'?location.hash:'';
+  if(h.startsWith('#sync=')){try{const o=JSON.parse(decodeURIComponent(h.slice(6)));history.replaceState(null,'',location.pathname+location.search);doConnect(o.u,o.c);return}catch(e){}}
+  if(SY){listen();pull()}
+  setInterval(()=>{if(SY)pull()},30000);
+  document.addEventListener?.('visibilitychange',()=>{if(!document.hidden&&SY)pull()});
+}
+render();renderSet();renderRoster();renderLog();renderRF();initSync();
 </script></body></html>
- 
