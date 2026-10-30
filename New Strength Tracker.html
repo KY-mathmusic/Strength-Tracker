@@ -1,4 +1,3 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -136,7 +135,7 @@ const eff=()=>mcs.flatMap(m=>(m.type=='UFD'||m.type=='LD')?[m,...[1,2].map(n=>({
 const rankOf=(m,rw)=>{const t=TM[m.type],key=t.note&&!t.lump&&m.note?sk(m):m.type,i=rw.findIndex(r=>r.key==key);return i>=0?i:rw.map(r=>r.c).lastIndexOf(t.c)+.5};
 const uniq=a=>{const z=new Set();return a.filter(m=>{const k=m.type+'|'+(m.note||'').toLowerCase();return z.has(k)?0:z.add(k)})};
 const lbl=()=>stype=='Conduct'?(cap(cname)?'Conduct: '+cap(cname):'Conduct'):stype;
-const hid=m=>PAR&&(m.type=='Fall Out'||m.type=='Report Sick'||m.type=='Other Conduct');
+const hid=m=>PAR&&(m.type=='Fall Out'||m.type=='Other Conduct');
 const pad2=n=>String(n).padStart(2,'0');
 const ddmmyy=x=>x.slice(8,10)+x.slice(5,7)+x.slice(2,4);
 const rlab=m=>(TM[m.type].note&&m.note?m.note:m.type).toUpperCase();
@@ -153,7 +152,7 @@ const rline=(id,en,rw)=>{
   return 'C'+id+'/'+out.join('; ');
 };
 let RP={},repPlt='1';
-const rcats=()=>[['UFD','UFD'],['OTHERS','OTHERS'],['EX','EX STAY-IN'],['GD','GUARD DUTY'],['STATUS','STATUS']].concat(PAR?[]:[['FO','FALL OUT'],['RS','REPORT SICK'],['OC','OTHER CONDUCT']]);
+const rcats=()=>[['UFD','UFD'],['OTHERS','OTHERS'],['EX','EX STAY-IN'],['GD','GUARD DUTY'],['STATUS','STATUS']].concat(PAR?[['RS','REPORT SICK']]:[['FO','FALL OUT'],['RS','REPORT SICK'],['OC','OTHER CONDUCT']]);
 const ZH=['EX','FO','RS','OC'];
 const rttl=()=>stype=='Conduct'?(cap(cname)?cap(cname).toUpperCase():'CONDUCT'):stype.toUpperCase();
 const rsfx=()=>stype=='Conduct'?'STRENGTH':'STATE';
@@ -184,7 +183,7 @@ const addB=(a,b)=>KEYS.forEach(k=>a[k]+=b[k]);
 const bl=B=>`UFD ${B.UFD}, Ex Stay-In ${B['Ex Stay-In']}, Guard Duty ${B['Guard Duty']}, Others ${B.Others}, Status ${B.Status}${PAR?'':` (+${B.StatusP} participating)`}${PAR?'':`, Fall Out ${B['Fall Out']}, Report Sick ${B['Report Sick']}`}`;
 const noFx=()=>!TM['Ex Stay-In'].cur&&(PAR||!TM['Ex Stay-In'].par);
 const cell=(n,c='')=>`<td class="${c}${n?'':' mu'}">${n}</td>`;
-const brow=(l,B,v)=>`<tr class="${v?'l'+v:''}"><td>${l}</td>${cell(B.tot)}${cell(B.c)}${PAR?'':cell(B.p)}${cell(B.UFD,'r')}${cell(B.Others,'r')}${cell(B['Ex Stay-In'],'o'+(noFx()?' fade':''))}${cell(B['Guard Duty'],'o')}${cell(B.Status,'y')}${PAR?'':cell(B.StatusP,'y fade')}${PAR?'':cell(B['Fall Out'],'b')+cell(B['Report Sick'],'b')+cell(B['Other Conduct'],'p')}</tr>`;
+const brow=(l,B,v)=>`<tr class="${v?'l'+v:''}"><td>${l}</td>${cell(B.tot)}${cell(B.c)}${PAR?'':cell(B.p)}${cell(B.UFD,'r')}${cell(B.Others,'r')}${cell(B['Ex Stay-In'],'o'+(noFx()?' fade':''))}${cell(B['Guard Duty'],'o')}${cell(B.Status,'y')}${PAR?'':cell(B.StatusP,'y fade')}${PAR?cell(B['Report Sick'],'b'):cell(B['Fall Out'],'b')+cell(B['Report Sick'],'b')+cell(B['Other Conduct'],'p')}</tr>`;
 function render(){
   PAR=stype!='Conduct';RP={};
   const d=$('#d').value||today,A={},RW=getRows();
@@ -221,7 +220,7 @@ function render(){
   $('#tp').innerHTML=PAR?'':`${tP}<span>/${tN}</span><small>Participating</small>`;
   $('#totsub').textContent=`${lbl()} · ${outN} recruit${outN==1?'':'s'} with a status on this date`;
   $('#pls').innerHTML=html;
-  $('#bd').innerHTML='<table><thead><tr><th>Unit</th><th>Total</th><th>Cur</th>'+(PAR?'':'<th>Part</th>')+'<th class="r">UFD</th><th class="r">Others</th><th class="o'+(noFx()?' fade':'')+'">Ex Stay-In</th><th class="o">Guard Duty</th><th class="y">Status</th>'+(PAR?'':'<th class="y fade">Status (Part)</th>')+''+(PAR?'':'<th class="b">Fall Out</th><th class="b">Report Sick</th><th class="p">Other Conduct</th>')+'</tr></thead><tbody>'+bdh+brow('Company',CB,2)+'</tbody></table><div class="mu" style="margin-top:6px">Each recruit is counted once, under his highest-precedence status. '+(PAR?'':'Status counts non-participating status recruits; the faded column is those still participating, who do not reduce the strength.')+'</div>';
+  $('#bd').innerHTML='<table><thead><tr><th>Unit</th><th>Total</th><th>Cur</th>'+(PAR?'':'<th>Part</th>')+'<th class="r">UFD</th><th class="r">Others</th><th class="o'+(noFx()?' fade':'')+'">Ex Stay-In</th><th class="o">Guard Duty</th><th class="y">Status</th>'+(PAR?'':'<th class="y fade">Status (Part)</th>')+''+(PAR?'<th class="b">Report Sick</th>':'<th class="b">Fall Out</th><th class="b">Report Sick</th><th class="p">Other Conduct</th>')+'</tr></thead><tbody>'+bdh+brow('Company',CB,2)+'</tbody></table><div class="mu" style="margin-top:6px">Each recruit is counted once, under his highest-precedence status. '+(PAR?'':'Status counts non-participating status recruits; the faded column is those still participating, who do not reduce the strength.')+'</div>';
   const act=eff().filter(m=>m.from<=d&&d<=m.to&&!X.has(m.id)&&!hid(m));$('#lh').textContent='Statuses on '+fmt(d);
   const g={};act.forEach(m=>{const k=m.id[0]+'|'+m.type+'|'+m.note+'|'+m.from+'|'+m.to;(g[k]=g[k]||[]).push(m)});
   const row=a=>{const m=a[0];return `<div class="mc"><span><b class="${TM[m.type].c}">${m.type}</b>${m.note?` (${esc(m.note)})`:''} · ${m.to==OPEN?fmt(m.from)+' – no end date':fmt(m.from)+' – '+fmt(m.to)+' ('+(Math.round((Date.parse(m.to)-Date.parse(m.from))/864e5)+1)+'D)'}${m.auto?' <span class="mu">(auto)</span>':''}<br><span class="mu">${a.map(x=>x.id).sort().join(', ')}</span></span><span style="display:flex;flex-direction:column;gap:4px">${m.auto?'':a.slice().sort((x,y)=>x.id<y.id?-1:x.id>y.id?1:0).map(x=>`<span style="display:flex;gap:4px"><button class="s" data-e="${x.k}">✎ ${x.id}</button><button class="s" data-k="${x.k}">✕</button></span>`).join('')}</span></div>`};
@@ -367,5 +366,3 @@ function initSync(){
 }
 render();renderSet();renderRoster();renderLog();renderRF();initSync();
 </script></body></html>
-
-</body></html>
