@@ -135,6 +135,7 @@ const eff=()=>mcs.flatMap(m=>(m.type=='UFD'||m.type=='LD')?[m,...[1,2].map(n=>({
 const rankOf=(m,rw)=>{const t=TM[m.type],key=t.note&&!t.lump&&m.note?sk(m):m.type,i=rw.findIndex(r=>r.key==key);return i>=0?i:rw.map(r=>r.c).lastIndexOf(t.c)+.5};
 const uniq=a=>{const z=new Set();return a.filter(m=>{const k=m.type+'|'+(m.note||'').toLowerCase();return z.has(k)?0:z.add(k)})};
 const lbl=()=>stype=='Conduct'?(cap(cname)?'Conduct: '+cap(cname):'Conduct'):stype;
+const col=m=>(m.type=='UFD+1'||m.type=='UFD+2')&&rule(m).cur?'r':TM[m.type].c;
 const hid=m=>PAR&&(m.type=='Fall Out'||m.type=='Other Conduct'||(TM[m.type].plus&&!rule(m).cur));
 const pad2=n=>String(n).padStart(2,'0');
 const ddmmyy=x=>x.slice(8,10)+x.slice(5,7)+x.slice(2,4);
@@ -200,7 +201,7 @@ function render(){
         const cat=!e.length?'none':top=='r'?['UFD','Others'].find(n=>ed.some(m=>m.type==n)):top=='o'?['Ex Stay-In','Guard Duty'].find(n=>ed.some(m=>m.type==n)):top=='y'?(ed.some(m=>(m.type=='UFD+1'||m.type=='UFD+2')&&rule(m).cur)?'UFD':'Status'):top=='p'?'Other Conduct':['Fall Out','Report Sick'].find(n=>ed.some(m=>m.type==n));
         B.tot++;B[cat=='Status'&&!PAR&&!exC&&!exP?'StatusP':cat]++;if(!exC){B.c++;if(!exP)B.p++}
         if(e.length){
-          ab+=`<span class="${TM[ed[0].type].c}${af.length?'':' fade'}">${id} ${ed.map(m=>m.type+(m.note?` (${esc(m.note)})`:'')).join('/')}</span>`;
+          ab+=`<span class="${cat=='UFD'?'r':TM[ed[0].type].c}${af.length?'':' fade'}">${id} ${ed.map(m=>m.type+(m.note?` (${esc(m.note)})`:'')).join('/')}</span>`;
           if(af.length)L[cat=='UFD'?'UFD':cat=='Status'?'STATUS':cat=='Fall Out'?'FO':cat=='Report Sick'?'RS':cat=='Other Conduct'?'OC':cat=='Ex Stay-In'?'EX':cat=='Guard Duty'?'GD':'OTHERS'].push(rline(id,pool.filter(m=>TM[m.type].c==top),RW));
           if(af.length)al.push(id+' '+ed.map(m=>m.type+(m.note?` (${m.note})`:'')).join('/'));
         }
@@ -223,7 +224,7 @@ function render(){
   $('#bd').innerHTML='<table><thead><tr><th>Unit</th><th>Total</th><th>Cur</th>'+(PAR?'':'<th>Part</th>')+'<th class="r">UFD</th><th class="r">Others</th><th class="o'+(noFx()?' fade':'')+'">Ex Stay-In</th><th class="o">Guard Duty</th><th class="y">Status</th>'+(PAR?'':'<th class="y fade">Status (Part)</th>')+''+(PAR?'<th class="b">Report Sick</th>':'<th class="b">Fall Out</th><th class="b">Report Sick</th><th class="p">Other Conduct</th>')+'</tr></thead><tbody>'+bdh+brow('Company',CB,2)+'</tbody></table><div class="mu" style="margin-top:6px">Each recruit is counted once, under his highest-precedence status. '+(PAR?'':'Status counts non-participating status recruits; the faded column is those still participating, who do not reduce the strength.')+'</div>';
   const act=eff().filter(m=>m.from<=d&&d<=m.to&&!X.has(m.id)&&!hid(m));$('#lh').textContent='Statuses on '+fmt(d);
   const g={};act.forEach(m=>{const k=m.id[0]+'|'+m.type+'|'+m.note+'|'+m.from+'|'+m.to;(g[k]=g[k]||[]).push(m)});
-  const row=a=>{const m=a[0];return `<div class="mc"><span><b class="${TM[m.type].c}">${m.type}</b>${m.note?` (${esc(m.note)})`:''} · ${m.to==OPEN?fmt(m.from)+' – no end date':fmt(m.from)+' – '+fmt(m.to)+' ('+(Math.round((Date.parse(m.to)-Date.parse(m.from))/864e5)+1)+'D)'}${m.auto?' <span class="mu">(auto)</span>':''}<br><span class="mu">${a.map(x=>x.id).sort().join(', ')}</span></span><span style="display:flex;flex-direction:column;gap:4px">${m.auto?'':a.slice().sort((x,y)=>x.id<y.id?-1:x.id>y.id?1:0).map(x=>`<span style="display:flex;gap:4px"><button class="s" data-e="${x.k}">✎ ${x.id}</button><button class="s" data-k="${x.k}">✕</button></span>`).join('')}</span></div>`};
+  const row=a=>{const m=a[0];return `<div class="mc"><span><b class="${col(m)}">${m.type}</b>${m.note?` (${esc(m.note)})`:''} · ${m.to==OPEN?fmt(m.from)+' – no end date':fmt(m.from)+' – '+fmt(m.to)+' ('+(Math.round((Date.parse(m.to)-Date.parse(m.from))/864e5)+1)+'D)'}${m.auto?' <span class="mu">(auto)</span>':''}<br><span class="mu">${a.map(x=>x.id).sort().join(', ')}</span></span><span style="display:flex;flex-direction:column;gap:4px">${m.auto?'':a.slice().sort((x,y)=>x.id<y.id?-1:x.id>y.id?1:0).map(x=>`<span style="display:flex;gap:4px"><button class="s" data-e="${x.k}">✎ ${x.id}</button><button class="s" data-k="${x.k}">✕</button></span>`).join('')}</span></div>`};
   const rw=getRows(),rk=m=>{const t=TM[m.type],key=t.note&&!t.lump&&m.note?sk(m):m.type,i=rw.findIndex(r=>r.key==key);return i>=0?i:rw.map(r=>r.c).lastIndexOf(t.c)+.5};
   const gs=Object.values(g).sort((a,b)=>rk(a[0])-rk(b[0])||(a[0].from<b[0].from?-1:a[0].from>b[0].from?1:0));
   $('#list').innerHTML=act.length?[1,2,3,4].map(p=>{const q=gs.filter(a=>a[0].id[0]==p);return q.length?`<div class="pl" style="margin-top:0"><div class="ph"><span>Platoon ${p}</span><span>${q.reduce((n,a)=>n+a.length,0)} entr${q.reduce((n,a)=>n+a.length,0)==1?'y':'ies'}</span></div>${q.map(row).join('')}</div>`:''}).join(''):'<div class="mu">No statuses on this date — everyone present.</div>';
@@ -279,7 +280,7 @@ function renderLookup(){
   const rw=getRows(),all=mcs.filter(m=>m.id==id),L=all.filter(m=>RF.has(m.type)).sort((a,b)=>a.from<b.from?-1:a.from>b.from?1:rankOf(a,rw)-rankOf(b,rw));
   box.innerHTML=`<div class="mu" style="margin-bottom:4px">${id}${exl.includes(id)?' · excluded from strength':''} · ${L.length} of ${all.length} entr${all.length==1?'y':'ies'}</div>`+(L.length?L.map(m=>{
     const tag=m.from<=d&&d<=m.to?'<b>active on selected date</b>':m.to<d?'past':'upcoming',n=Math.round((Date.parse(m.to)-Date.parse(m.from))/864e5)+1;
-    return `<div class="mc"><span><b class="${TM[m.type].c}">${m.type}</b>${m.note?` (${esc(m.note)})`:''}${m.auto?' <span class="mu">(auto)</span>':''}<br><span class="mu">${m.to==OPEN?fmt(m.from)+' – no end date':fmt(m.from)+' – '+fmt(m.to)+' · '+n+'D'} · ${tag}</span></span>${m.auto?'':`<span style="display:flex;gap:4px"><button class="s" data-e="${m.k}">✎</button><button class="s" data-k="${m.k}">✕</button></span>`}</div>`}).join(''):'<div class="mu">No matching statuses.</div>');
+    return `<div class="mc"><span><b class="${col(m)}">${m.type}</b>${m.note?` (${esc(m.note)})`:''}${m.auto?' <span class="mu">(auto)</span>':''}<br><span class="mu">${m.to==OPEN?fmt(m.from)+' – no end date':fmt(m.from)+' – '+fmt(m.to)+' · '+n+'D'} · ${tag}</span></span>${m.auto?'':`<span style="display:flex;gap:4px"><button class="s" data-e="${m.k}">✎</button><button class="s" data-k="${m.k}">✕</button></span>`}</div>`}).join(''):'<div class="mu">No matching statuses.</div>');
 }
 $('#rid').oninput=renderLookup;
 $('#rf').onchange=e=>{const t=e.target.dataset.t;if(t){e.target.checked?RF.add(t):RF.delete(t);renderLookup()}};
