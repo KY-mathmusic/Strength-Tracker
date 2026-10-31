@@ -135,7 +135,7 @@ const eff=()=>mcs.flatMap(m=>(m.type=='UFD'||m.type=='LD')?[m,...[1,2].map(n=>({
 const rankOf=(m,rw)=>{const t=TM[m.type],key=t.note&&!t.lump&&m.note?sk(m):m.type,i=rw.findIndex(r=>r.key==key);return i>=0?i:rw.map(r=>r.c).lastIndexOf(t.c)+.5};
 const uniq=a=>{const z=new Set();return a.filter(m=>{const k=m.type+'|'+(m.note||'').toLowerCase();return z.has(k)?0:z.add(k)})};
 const lbl=()=>stype=='Conduct'?(cap(cname)?'Conduct: '+cap(cname):'Conduct'):stype;
-const hid=m=>PAR&&(m.type=='Fall Out'||m.type=='Other Conduct');
+const hid=m=>PAR&&(m.type=='Fall Out'||m.type=='Other Conduct'||(TM[m.type].plus&&!rule(m).cur));
 const pad2=n=>String(n).padStart(2,'0');
 const ddmmyy=x=>x.slice(8,10)+x.slice(5,7)+x.slice(2,4);
 const rlab=m=>(TM[m.type].note&&m.note?m.note:m.type).toUpperCase();
@@ -197,7 +197,7 @@ function render(){
         const id=''+p+s+String(b).padStart(2,'0'),e=A[id]||[];if(X.has(id))continue;n++;
         const af=e.filter(m=>PAR||rule(m).cur||rule(m).par),pool=af.length?af:e,top='roybp'.split('').find(c=>pool.some(m=>TM[m.type].c==c)),ed=uniq(pool.filter(m=>TM[m.type].c==top)).sort((a,b)=>rankOf(a,RW)-rankOf(b,RW));const exC=e.some(m=>rule(m).cur),exP=e.some(m=>rule(m).par);
         if(!exC){c++;if(!exP)pa++}
-        const cat=!e.length?'none':top=='r'?['UFD','Others'].find(n=>ed.some(m=>m.type==n)):top=='o'?['Ex Stay-In','Guard Duty'].find(n=>ed.some(m=>m.type==n)):top=='y'?'Status':top=='p'?'Other Conduct':['Fall Out','Report Sick'].find(n=>ed.some(m=>m.type==n));
+        const cat=!e.length?'none':top=='r'?['UFD','Others'].find(n=>ed.some(m=>m.type==n)):top=='o'?['Ex Stay-In','Guard Duty'].find(n=>ed.some(m=>m.type==n)):top=='y'?(ed.some(m=>(m.type=='UFD+1'||m.type=='UFD+2')&&rule(m).cur)?'UFD':'Status'):top=='p'?'Other Conduct':['Fall Out','Report Sick'].find(n=>ed.some(m=>m.type==n));
         B.tot++;B[cat=='Status'&&!PAR&&!exC&&!exP?'StatusP':cat]++;if(!exC){B.c++;if(!exP)B.p++}
         if(e.length){
           ab+=`<span class="${TM[ed[0].type].c}${af.length?'':' fade'}">${id} ${ed.map(m=>m.type+(m.note?` (${esc(m.note)})`:'')).join('/')}</span>`;
